@@ -1,4 +1,6 @@
 name: HypoFuzz CI/CD
+env:
+  CI: true
 
 on:
   push:
