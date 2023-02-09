@@ -39,7 +39,7 @@ class GitHubArtifactDatabase(DirectoryBasedExampleDatabase):
                 f"https://api.github.com/repos/{self.owner}/{self.repo}/actions/artifacts",
                 headers={
                     "Accept": "application/vnd.github+json",
-                    "X-GitHub-Api-Version": "2023-02-09",
+                    "X-GitHub-Api-Version": "2022-11-28 ",
                     "Authorization": f"Bearer {self.token}",
                 },
             )
@@ -52,7 +52,7 @@ class GitHubArtifactDatabase(DirectoryBasedExampleDatabase):
         except requests.exceptions.HTTPError:
             raise RuntimeError(
                 "Could not get the latest artifact from GitHub. "
-                "Check that the repository exists and that the token is valid."
+                "Check that the repository exists and that you've provided a valid token (GITHUB_TOKEN)."
             )
 
         artifact = sorted(
@@ -68,7 +68,7 @@ class GitHubArtifactDatabase(DirectoryBasedExampleDatabase):
                     artifact["archive_download_url"],
                     headers={
                         "Accept": "application/vnd.github+json",
-                        "X-GitHub-Api-Version": "2023-02-09",
+                        "X-GitHub-Api-Version": "2022-11-28",
                         "Authorization": f"Bearer {self.token}",
                     },
                     stream=True,
@@ -82,7 +82,7 @@ class GitHubArtifactDatabase(DirectoryBasedExampleDatabase):
             except requests.exceptions.HTTPError:
                 raise RuntimeError(
                     "Could not get the latest artifact from GitHub. "
-                    "Check that the repository exists and that the token is valid."
+                    "Check that the repository exists and that you've provided a valid token (GITHUB_TOKEN)."
                 )
 
             f.write(req.content)
