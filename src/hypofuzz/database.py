@@ -11,7 +11,7 @@ class GitHubArtifactDatabase(DirectoryBasedExampleDatabase):
     """
     A database that reads from a GitHub artifact.
 
-    This provides read-only access to a database produced by CI and requires a GitHub token (set by the `GH_TOKEN` environment variable).
+    This provides read-only access to a database produced by CI and requires a GitHub token (set by the `GITHUB_TOKEN` environment variable).
     """
 
     def __init__(
@@ -23,7 +23,7 @@ class GitHubArtifactDatabase(DirectoryBasedExampleDatabase):
 
         # Get the GitHub token from the environment
         # It's unnecessary to use a token if the repo is public
-        self.token = getenv("GH_TOKEN")
+        self.token = getenv("GITHUB_TOKEN")
         self._artifact_downloaded = False
 
     def __repr__(self) -> str:
@@ -92,6 +92,7 @@ class GitHubArtifactDatabase(DirectoryBasedExampleDatabase):
             shutil.unpack_archive(f.name, storage_directory("ci"), "zip")
 
         super().__init__(storage_directory("ci"))
+        self._artifact_downloaded = True
 
     def fetch(self, key: bytes):
         self._fetch_artifact()

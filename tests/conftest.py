@@ -3,11 +3,14 @@ from hypothesis.database import DirectoryBasedExampleDatabase, MultiplexedDataba
 from hypofuzz.database import GitHubArtifactDatabase
 import os
 
-local = DirectoryBasedExampleDatabase("/tmp/hypothesis/examples/")
+local = DirectoryBasedExampleDatabase(".hypothesis/examples")
 shared = GitHubArtifactDatabase("agucova", "hypofuzz")
 
 settings.register_profile("ci", database=local)
-settings.register_profile(
-    "dev", database=MultiplexedDatabase(local, shared)
-)
-settings.load_profile("ci" if os.environ.get("CI") else "dev")
+settings.register_profile("dev", database=MultiplexedDatabase(local, shared))
+if os.environ.get("CI"):
+    settings.load_profile("ci")
+    print("🤖 Running on CI mode")
+else:
+    settings.load_profile("dev")
+    print("👨‍💻 Running on dev mode")
