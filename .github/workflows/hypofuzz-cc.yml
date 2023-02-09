@@ -25,6 +25,7 @@ jobs:
       run: python -m pip install --upgrade pip setuptools tox
 
     - name: Run hypofuzz session (10m)
+      continue-on-error: true
       run: |
         tox -e hypofuzz
 

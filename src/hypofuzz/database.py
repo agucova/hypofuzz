@@ -14,7 +14,7 @@ class GitHubArtifactDatabase(DirectoryBasedExampleDatabase):
     This provides read-only access to a database produced by CI and requires a GitHub token (set by the `GH_TOKEN` environment variable).
     """
 
-    def __init__(self, owner: str, repo: str, artifact_name: str):
+    def __init__(self, owner: str, repo: str, artifact_name: str = "hypofuzz-example-db"):
         self.owner = owner
         self.repo = repo
         self.artifact_name = artifact_name
