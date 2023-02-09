@@ -15,12 +15,21 @@ jobs:
         python-version: ["3.8", "3.9", "3.10"]
       fail-fast: false
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+
     - name: Install dependencies
       run: python -m pip install --upgrade pip setuptools tox
+
     - name: Run hypofuzz session (10m)
-      run: python -m tox exec --recreate -e test -n  -- timeout 600 hypothesis fuzz
+      run: |
+        tox -e hypofuzz
+
+    - name: Upload example database as an artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: hypofuzz-examples-db
+        path: .hypofuzz/examples
