@@ -14,7 +14,9 @@ class GitHubArtifactDatabase(DirectoryBasedExampleDatabase):
     This provides read-only access to a database produced by CI and requires a GitHub token (set by the `GH_TOKEN` environment variable).
     """
 
-    def __init__(self, owner: str, repo: str, artifact_name: str = "hypofuzz-example-db"):
+    def __init__(
+        self, owner: str, repo: str, artifact_name: str = "hypofuzz-example-db"
+    ):
         self.owner = owner
         self.repo = repo
         self.artifact_name = artifact_name
@@ -22,11 +24,19 @@ class GitHubArtifactDatabase(DirectoryBasedExampleDatabase):
         # Get the GitHub token from the environment
         # It's unnecessary to use a token if the repo is public
         self.token = getenv("GH_TOKEN")
+        self._artifact_downloaded = False
+
+    def __repr__(self) -> str:
+        return f"GitHubArtifactDatabase(owner={self.owner}, repo={self.repo}, artifact_name={self.artifact_name})"
+
+    def _fetch_artifact(self) -> None:
+        if self._artifact_downloaded:
+            return
 
         # Get the latest artifact from the GitHub API
         try:
             res = requests.get(
-                f"https://api.github.com/repos/{owner}/{repo}/actions/artifacts",
+                f"https://api.github.com/repos/{self.owner}/{self.repo}/actions/artifacts",
                 headers={
                     "Accept": "application/vnd.github+json",
                     "X-GitHub-Api-Version": "2023-02-09",
@@ -46,7 +56,7 @@ class GitHubArtifactDatabase(DirectoryBasedExampleDatabase):
             )
 
         artifact = sorted(
-            filter(lambda a: a["name"] == artifact_name, artifacts),
+            filter(lambda a: a["name"] == self.artifact_name, artifacts),
             key=lambda a: a["created_at"],
         )[-1]
 
@@ -83,8 +93,9 @@ class GitHubArtifactDatabase(DirectoryBasedExampleDatabase):
 
         super().__init__(storage_directory("ci"))
 
-    def __repr__(self) -> str:
-        return f"GitHubArtifactDatabase(owner={self.owner}, repo={self.repo}, artifact_name={self.artifact_name})"
+    def fetch(self, key: bytes):
+        self._fetch_artifact()
+        return super().fetch(key)
 
     # Now we disable the write methods
     def save(self, key: bytes, value: bytes) -> None:
