@@ -12,6 +12,7 @@ class GitHubArtifactDatabase(DirectoryBasedExampleDatabase):
     A database that reads from a GitHub artifact.
 
     This provides read-only access to a database produced by CI and requires a GitHub token (set by the `GITHUB_TOKEN` environment variable).
+    For mono-repo support, you can provide an unique `artifact_name` (e.g. `hypofuzz-example-db-branch`).
     """
 
     def __init__(
@@ -24,6 +25,8 @@ class GitHubArtifactDatabase(DirectoryBasedExampleDatabase):
         # Get the GitHub token from the environment
         # It's unnecessary to use a token if the repo is public
         self.token = getenv("GITHUB_TOKEN")
+
+        # We want to be lazy per conftest initialization
         self._artifact_downloaded = False
 
     def __repr__(self) -> str:
@@ -50,11 +53,13 @@ class GitHubArtifactDatabase(DirectoryBasedExampleDatabase):
                 "Could not connect to GitHub to get the latest artifact."
             )
         except requests.exceptions.HTTPError:
+            # TODO: Be more granular
             raise RuntimeError(
                 "Could not get the latest artifact from GitHub. "
                 "Check that the repository exists and that you've provided a valid token (GITHUB_TOKEN)."
             )
 
+        # Get the latest artifact from the list
         artifact = sorted(
             filter(lambda a: a["name"] == self.artifact_name, artifacts),
             key=lambda a: a["created_at"],
@@ -62,7 +67,6 @@ class GitHubArtifactDatabase(DirectoryBasedExampleDatabase):
 
         # Download and extract the artifact into .hypothesis/ci
         with tempfile.NamedTemporaryFile() as f:
-            # Download the artifact
             try:
                 req = requests.get(
                     artifact["archive_download_url"],
@@ -96,9 +100,10 @@ class GitHubArtifactDatabase(DirectoryBasedExampleDatabase):
 
     def fetch(self, key: bytes):
         self._fetch_artifact()
+        # Delegate all IO to DirectoryBasedExampleDatabase
         return super().fetch(key)
 
-    # Now we disable the write methods
+    # Read-only interface
     def save(self, key: bytes, value: bytes) -> None:
         pass
 
